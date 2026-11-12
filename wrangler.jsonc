@@ -49,7 +49,7 @@
 			"new_sqlite_classes": ["WorkflowStatusDO"]
 		}
 	],
-"r2_buckets": [
+	"r2_buckets": [
 		{
 			"binding": "MY_BUCKET",
 			"bucket_name": "intro2society"
