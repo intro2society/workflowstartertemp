@@ -47,6 +47,29 @@ export class WorkflowStatusDO extends DurableObject {
 		});
 	}
 
+	/**
+	 * Atomically enforce a per-object request window. Each client IP gets its
+	 * own limiter object, avoiding a single global hot Durable Object.
+	 */
+	async consumeRateLimit(limit: number, windowMs: number): Promise<boolean> {
+		return this.ctx.storage.transaction(async (txn) => {
+			const now = Date.now();
+			const current = await txn.get<{ windowStart: number; count: number }>(
+				"apiRateLimit",
+			);
+			if (!current || now - current.windowStart >= windowMs) {
+				await txn.put("apiRateLimit", { windowStart: now, count: 1 });
+				return true;
+			}
+			if (current.count >= limit) return false;
+			await txn.put("apiRateLimit", {
+				windowStart: current.windowStart,
+				count: current.count + 1,
+			});
+			return true;
+		});
+	}
+
 	async fetch(request: Request): Promise<Response> {
 		if (request.headers.get("Upgrade") === "websocket") {
 			const pair = new WebSocketPair();
