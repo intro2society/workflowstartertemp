@@ -31,8 +31,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Build production assets
+        run: npm run build
+
       - name: Type-check and Wrangler dry run
         run: npm run check
 
-      - name: Build production assets
-        run: npm run build
